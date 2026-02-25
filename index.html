@@ -917,52 +917,22 @@ async function sauvegarderGoldCloud() {
   if (!currentUser) return;
   try {
     const ref = doc(db, 'users', currentUser.uid);
-    await updateDoc(ref, {
+    // setDoc avec merge:true fonctionne que le document existe ou non
+    // updateDoc echoue si le document n existe pas - bug corrige ici
+    await setDoc(ref, {
+      uid:         currentUser.uid,
+      email:       currentUser.email,
+      displayName: currentUser.displayName,
       gold:        gold,
       lastUpdated: serverTimestamp()
-    });
+    }, { merge: true });
   } catch (e) {
     console.warn('Erreur sauvegarde gold :', e);
   }
 }
 
-/* Listener Firestore temps réel — s'arrête quand on se déconnecte */
+/* Listener Firestore — stoppé à la déconnexion */
 let unsubscribeSnapshot = null;
-
-async function chargerGoldCloud() {
-  if (!currentUser) return;
-
-  const ref = doc(db, 'users', currentUser.uid);
-
-  // Vérifier si le document existe, sinon le créer
-  try {
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-      await setDoc(ref, {
-        uid:         currentUser.uid,
-        email:       currentUser.email,
-        displayName: currentUser.displayName,
-        gold:        0,
-        createdAt:   serverTimestamp(),
-        lastUpdated: serverTimestamp()
-      });
-    }
-  } catch (e) {
-    console.warn('Erreur init document :', e);
-  }
-
-  // Écouter les changements en temps réel
-  // → le gold ne retombera JAMAIS à 0 au rechargement
-  unsubscribeSnapshot = onSnapshot(ref, (snap) => {
-    if (snap.exists()) {
-      const data = snap.data();
-      gold = data.gold || 0;
-      majAffichageGold();
-    }
-  }, (e) => {
-    console.warn('Erreur snapshot :', e);
-  });
-}
 
 /* ================================================
    AUTHENTIFICATION GOOGLE
