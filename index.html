@@ -1062,55 +1062,18 @@ onAuthStateChanged(auth, async (user) => {
 ================================================ */
 let pubEnCours = false;
 
-async function regarderPub() {
-  if (pubEnCours) return;
-  pubEnCours = true;
+function regarderPub() {
+  // Lance la pub Monetag + donne 20 gold immédiatement
+  ajouterGold(20);
+  showToast('✅ +20 gold !', 'gold');
 
-  const btn = document.getElementById('btn-pub');
-  const DUREE = 10; // secondes de visionnage obligatoire
-  btn.disabled = true;
-
-  // Déclencher le Popunder Monetag (s'ouvre en arrière-plan)
+  // Déclenche le popunder Monetag en arrière-plan
   try {
     const s = document.createElement('script');
     s.dataset.zone = '10652233';
     s.src = 'https://nap5k.com/tag.min.js';
     document.body.appendChild(s);
-  } catch(e) {
-    console.warn('Monetag:', e);
-  }
-
-  // Countdown visible — gold donné UNIQUEMENT à la fin
-  let secsLeft = DUREE;
-  btn.textContent = '⏳ Regarde la pub... ' + secsLeft + 's';
-
-  const countdown = setInterval(async () => {
-    secsLeft--;
-    btn.textContent = '⏳ Regarde la pub... ' + secsLeft + 's';
-
-    if (secsLeft <= 0) {
-      clearInterval(countdown);
-
-      // ✅ Gold donné ici — après les 10s complètes
-      await ajouterGold(20);
-      showToast('✅ +20 gold ! Merci d'avoir regardé.', 'gold');
-
-      // Cooldown 30s avant de pouvoir relancer
-      let cooldown = 30;
-      btn.textContent = '⏳ Prochaine pub dans ' + cooldown + 's';
-
-      const cdTimer = setInterval(() => {
-        cooldown--;
-        btn.textContent = '⏳ Prochaine pub dans ' + cooldown + 's';
-        if (cooldown <= 0) {
-          clearInterval(cdTimer);
-          btn.disabled    = false;
-          btn.textContent = '📺 Regarder pub (+20 gold)';
-          pubEnCours      = false;
-        }
-      }, 1000);
-    }
-  }, 1000);
+  } catch(e) {}
 }
 window.regarderPub = regarderPub;
 
