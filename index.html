@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#111111" />
   <meta name="description" content="REWARD WEB - Gagne des Robux gratuits en regardant des pubs !" />
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init("Drs1F2P7siOaT9gWU");</script>
   <!-- Vérification Monetag -->
   <meta name="monetag" content="c4c5436599ba830864180d4cc0e7d830" />
   <title>REWARD WEB - Gagne Robux Gratuit</title>
@@ -537,6 +540,19 @@
   #toast.gold { border-color: var(--gold); color: var(--gold); }
   #toast.err  { border-color: var(--red);  color: var(--red);  }
 
+  /* Bannière Adsterra */
+  .adsterra-banner {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 14px;
+    min-height: 50px;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar       { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -638,6 +654,36 @@
     </div>
   </div>
 
+
+  <!-- ================================================
+       BANNIÈRE ADSTERRA 320x50
+  ================================================ -->
+  <div class="adsterra-banner" id="adsterra-banner">
+    <script>
+      atOptions = {
+        'key'    : '8e8cce5c1a2ad0a2ad5bd5c750860ab5',
+        'format' : 'iframe',
+        'height' : 50,
+        'width'  : 320,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/8e8cce5c1a2ad0a2ad5bd5c750860ab5/invoke.js"></script>
+  </div>
+
+  <!-- Bannière Adsterra 320x50 -->
+  <div style="display:flex; justify-content:center; margin-bottom:14px;">
+    <script>
+      atOptions = {
+        'key' : '8e8cce5c1a2ad0a2ad5bd5c750860ab5',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/8e8cce5c1a2ad0a2ad5bd5c750860ab5/invoke.js"></script>
+  </div>
 
   <!-- Sondage -->
   <div class="survey-msg blink">
@@ -776,6 +822,20 @@
 
   <button class="back-btn" onclick="afficherPage('page-dashboard')">← Retour</button>
   <h2>🎁 Récompenses</h2>
+
+  <!-- Bannière Adsterra -->
+  <div class="adsterra-banner">
+    <script>
+      atOptions = {
+        'key'    : '8e8cce5c1a2ad0a2ad5bd5c750860ab5',
+        'format' : 'iframe',
+        'height' : 50,
+        'width'  : 320,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/8e8cce5c1a2ad0a2ad5bd5c750860ab5/invoke.js"></script>
+  </div>
 
   <div class="reward-card">
     <div class="reward-price">5 000 gold = 800 Robux</div>
@@ -1109,19 +1169,16 @@ function regarderPub() {
   const btn = document.getElementById('btn-pub');
   if (btn.disabled) return;
 
-  // Désactiver le bouton pendant la pub
+  // ⚠️ window.open DOIT être appelé directement dans le gestionnaire
+  // de clic utilisateur — c'est la seule façon que le navigateur autorise
+  // Remplace cette URL par ton Direct Link Monetag/Adsterra quand tu l'as
+  const PUB_URL = 'https://nap5k.com/tag.min.js?zone=10652233';
+  window.open(PUB_URL, '_blank');
+
+  // Désactiver le bouton et lancer countdown
   btn.disabled = true;
   btn.textContent = '⏳ 10s...';
 
-  // Lancer la pub Monetag
-  try {
-    const s = document.createElement('script');
-    s.dataset.zone = '10652233';
-    s.src = 'https://nap5k.com/tag.min.js';
-    document.body.appendChild(s);
-  } catch(e) {}
-
-  // Countdown 10s puis donner le gold
   let secs = 10;
   const timer = setInterval(async () => {
     secs--;
@@ -1486,7 +1543,7 @@ async function initWithdrawalSystem() {
     const snap = await getDoc(ref);
 
     if (!snap.exists()) {
-      _setWithdrawalUI(false, null);
+      _setWithdrawalUI(false);
       return;
     }
 
@@ -1496,25 +1553,44 @@ async function initWithdrawalSystem() {
     const closeDate = data.closeDate ? data.closeDate.toDate() : null;
     const active    = data.active === true;
 
+    // CAS 1 : Fenêtre active ET on est dans l'intervalle → OUVERTE
     if (active && openDate && closeDate && now >= openDate && now <= closeDate) {
       withdrawalActive = true;
-      _setWithdrawalUI(true, closeDate);
+      _setWithdrawalUI(true);
       _startCountdown(closeDate, 'countdown-close-display', () => {
         withdrawalActive = false;
-        _setWithdrawalUI(false, null);
+        _setWithdrawalUI(false);
+        initWithdrawalSystem();
       });
+
+    // CAS 2 : Pas encore ouvert → countdown vers openDate
+    } else if (openDate && now < openDate) {
+      withdrawalActive = false;
+      _setWithdrawalUI(false);
+      _startCountdown(openDate, 'countdown-display', () => {
+        initWithdrawalSystem(); // recheck quand openDate arrive
+      });
+
+    // CAS 3 : Fenêtre passée ou active=false sans dates valides → fermé
     } else {
       withdrawalActive = false;
-      _setWithdrawalUI(false, openDate);
-      if (openDate && now < openDate) {
-        _startCountdown(openDate, 'countdown-display', () => {
-          initWithdrawalSystem();
-        });
+      _setWithdrawalUI(false);
+      // Afficher un message clair si closeDate est passée
+      const el = document.getElementById('countdown-display');
+      if (el) {
+        if (closeDate && now > closeDate) {
+          el.textContent = 'Fenêtre expirée';
+          el.style.fontSize = '16px';
+        } else {
+          el.textContent = 'Date non définie';
+          el.style.fontSize = '16px';
+        }
       }
     }
+
   } catch(e) {
     console.warn('Erreur withdrawal:', e);
-    _setWithdrawalUI(false, null);
+    _setWithdrawalUI(false);
   }
 }
 
@@ -1605,15 +1681,20 @@ async function retirerRecompense() {
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Traitement...'; }
 
   await ajouterGold(-5000);
-
   // Sauvegarder dans Firestore collection withdrawals
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', {
+    day:'2-digit', month:'long', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+
   try {
     await setDoc(doc(db, 'withdrawals', currentUser.uid + '_' + Date.now()), {
       uid:          currentUser.uid,
       email:        currentUser.email,
       displayName:  currentUser.displayName,
       robloxPseudo: pseudo,
-      goldSpent:    5000,
+      goldSpent:    gold,
       reward:       '800 Robux',
       status:       'pending',
       requestedAt:  serverTimestamp()
@@ -1622,15 +1703,31 @@ async function retirerRecompense() {
     console.warn('Erreur sauvegarde retrait:', e);
   }
 
+  // Envoyer email automatique via EmailJS
+  try {
+    await emailjs.send('a02z2I7', 'template_I4uftiy', {
+      to_name:       currentUser.displayName || 'Joueur',
+      to_email:      currentUser.email,
+      roblox_pseudo: pseudo,
+      reward:        '800 Robux',
+      date:          dateStr,
+      discord_link:  DISCORD
+    });
+    console.log('✅ Email envoyé à', currentUser.email);
+  } catch(e) {
+    console.warn('Erreur envoi email:', e);
+  }
+
   if (robloxEl) robloxEl.value = '';
 
-  // Message succès avec lien Discord
+  // Message succès avec lien Discord + confirmation email
   msg.classList.add('ok');
   msg.innerHTML =
     '✅ Demande envoyée pour <strong>' + pseudo + '</strong> !<br><br>' +
-    '📩 Rejoins notre Discord pour suivre ta récompense :<br>' +
+    '📧 Email de confirmation envoyé à <strong>' + currentUser.email + '</strong><br><br>' +
+    '📩 Rejoins notre Discord pour recevoir tes Robux :<br>' +
     '<a href="' + DISCORD + '" target="_blank" style="color:#5865F2;font-weight:700;text-decoration:underline;">' + DISCORD + '</a><br><br>' +
-    '⏱ Tes 800 Robux seront envoyés sous 24–48h.';
+    '⏱ Tes Robux seront envoyés sous 24–48h.';
 
   setTimeout(() => msg.classList.add('hidden'), 15000);
   if (btn) { btn.textContent = '✅ Retrait demandé ce mois'; }
