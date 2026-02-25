@@ -638,6 +638,33 @@
     </div>
   </div>
 
+
+  <!-- ================================================
+       ADSENSE BANNIÈRE — Remplace ce bloc par ton
+       vrai code AdSense dès approbation Google
+  ================================================ -->
+  <div id="adsense-banner" style="
+    width:100%; max-width:480px;
+    background:var(--card2);
+    border:1px dashed #444;
+    border-radius:var(--radius);
+    padding:10px;
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:14px;
+  ">
+    📢 Espace publicitaire — AdSense (en attente d'approbation)
+    <!-- COLLE ICI TON CODE ADSENSE QUAND APPROUVÉ
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    -->
+  </div>
   <!-- Sondage -->
   <div class="survey-msg blink">
     ⚠️ SONDAGE À VENIR pour décider de la prochaine récompense<br>
@@ -734,7 +761,8 @@
 
   <div class="reward-card">
     <div class="reward-price">5 000 gold = 800 Robux</div>
-    <img src="https://placehold.co/180x112/cc0000/ffffff?text=Roblox+Gift+Card"
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Roblox_gift_card.jpg/320px-Roblox_gift_card.jpg"
+         onerror="this.src='https://placehold.co/180x112/cc0000/ffffff?text=Roblox+Gift+Card'"
          alt="Carte Roblox"
          onerror="this.style.display='none'" />
     <div class="reward-window-box">
@@ -1039,7 +1067,28 @@ async function regarderPub() {
   pubEnCours = true;
   const btn = document.getElementById('btn-pub');
   btn.disabled    = true;
-  btn.textContent = '⏳ Pub en cours... (2s)';
+  btn.textContent = '⏳ Pub en cours... (5s)';
+
+  // Déclencher le Popunder Monetag (zone 10652233)
+  // Le popunder s'ouvre dans un nouvel onglet automatiquement
+  try {
+    const tagScript = document.createElement('script');
+    tagScript.dataset.zone = '10652233';
+    tagScript.src = 'https://nap5k.com/tag.min.js';
+    document.body.appendChild(tagScript);
+  } catch(e) {
+    console.warn('Monetag popunder:', e);
+  }
+
+  // Simuler 5s de visionnage puis donner le gold
+  let secsLeft = 5;
+  const countdown = setInterval(() => {
+    secsLeft--;
+    btn.textContent = '⏳ Pub en cours... (' + secsLeft + 's)';
+    if (secsLeft <= 0) {
+      clearInterval(countdown);
+    }
+  }, 1000);
 
   setTimeout(async () => {
     await ajouterGold(20);
@@ -1047,7 +1096,7 @@ async function regarderPub() {
     btn.textContent = '📺 Regarder pub (+20 gold)';
     pubEnCours      = false;
     showToast('✅ +20 gold ! Pub terminée.', 'gold');
-  }, 2000);
+  }, 5000);
 }
 window.regarderPub = regarderPub;
 
@@ -1405,5 +1454,28 @@ async function retirerRecompense() {
 window.retirerRecompense = retirerRecompense;
 
 </script>
+
+  <!-- ================================================
+       MONETAG — Onclick Popunder (zone 10652233)
+       Se déclenche au clic sur le bouton pub
+  ================================================ -->
+  <script id="monetag-popunder">
+  (function(s){
+    s.dataset.zone = '10652233';
+    s.src = 'https://nap5k.com/tag.min.js';
+  })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+  </script>
+
+  <!-- ================================================
+       MONETAG — In-Page Push Banner (zone 10652225)
+       Bannière discrète affichée en permanence
+  ================================================ -->
+  <script id="monetag-banner">
+  (function(s){
+    s.dataset.zone = '10652225';
+    s.src = 'https://al5sm.com/tag.min.js';
+  })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+  </script>
+
 </body>
 </html>
